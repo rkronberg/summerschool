@@ -3,6 +3,7 @@ program subroutines
   implicit none
   ! TODO: define the arrays
   integer :: nx, ny
+  real, allocatable :: current(:,:), previous(:,:)
 
   write (*,*) 'Give number of rows and columns for matrix A:'
   read (*,*) nx, ny
