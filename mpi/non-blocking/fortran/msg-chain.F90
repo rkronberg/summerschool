@@ -37,17 +37,19 @@ program basic
   call mpi_barrier(mpi_comm_world, rc)
   t0 = mpi_wtime()
 
-  ! TODO: Implement the message passing using non-blocking
-  !       sends and receives
+  
+  call mpi_irecv(receiveBuffer,msgsize,mpi_integer,source,mpi_any_tag,mpi_comm_world,requests(1),rc)
+  
+  call mpi_isend(message,msgsize,mpi_integer,destination,myid+1,mpi_comm_world,requests(2),rc)
+  
+  call mpi_waitall(2, requests, status, rc)
 
-  write(*,'(A10,I3,A20,I8,A,I3,A,I3)') 'Sender: ', myid, &
-       ' Sent elements: ', size, &
-       '. Tag: ', myid + 1, '. Receiver: ', destination
-
-  ! TODO: Add here a synchronization call so that you can be sure
-  !       that the message has been received
-
+  ! Use status parameter to find out the no. of elements received
   call mpi_get_count(status(1), MPI_INTEGER, count, rc)
+  write(*,'(A10,I3,A20,I8,A,I3,A,I3)') 'Sender: ', myid, &
+       ' Sent elements: ', msgsize, &
+       '. Tag: ', myid + 1, &
+       '. Receiver: ', destination
   write(*,'(A10,I3,A20,I8,A,I3,A,I3)') 'Receiver: ', myid, &
        'received elements: ', count, &
        '. Tag: ', status(1)%MPI_TAG, &
