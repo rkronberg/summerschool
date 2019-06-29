@@ -36,13 +36,19 @@ program basic
   ! Start measuring the time spent in communication
   call mpi_barrier(mpi_comm_world, rc)
   t0 = mpi_wtime()
+  
+  call mpi_recv_init(receiveBuffer,msgsize,mpi_integer,source,mpi_any_tag,mpi_comm_world,requests(1),rc)
+  
+  call mpi_send_init(message,msgsize,mpi_integer,destination,myid+1,mpi_comm_world,requests(2),rc)
 
-  
-  call mpi_irecv(receiveBuffer,msgsize,mpi_integer,source,mpi_any_tag,mpi_comm_world,requests(1),rc)
-  
-  call mpi_isend(message,msgsize,mpi_integer,destination,myid+1,mpi_comm_world,requests(2),rc)
-  
-  call mpi_waitall(2, requests, status, rc)
+  call mpi_start(requests(1))
+  call mpi_start(requests(2))
+
+  call mpi_wait(requests(1),status(1))
+  call mpi_wait(requests(2),status(2))
+
+
+  ! call mpi_waitall(2, requests, status, rc)
 
   ! Use status parameter to find out the no. of elements received
   call mpi_get_count(status(1), MPI_INTEGER, count, rc)
