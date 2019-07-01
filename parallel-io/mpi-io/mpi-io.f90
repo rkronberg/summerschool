@@ -6,6 +6,7 @@ program pario
   integer, parameter :: datasize = 64, writer_id = 0
   integer :: rc, my_id, ntasks, localsize, i
   integer, dimension(:), allocatable :: localvector
+  integer, dimension(datasize) :: fullvector
 
   call mpi_init(rc)
   call mpi_comm_size(mpi_comm_world, ntasks, rc)
@@ -28,6 +29,8 @@ program pario
 
   call mpiio_writer()
 
+
+  call ordered_print()
   deallocate(localvector)
   call mpi_finalize(rc)
 
@@ -45,6 +48,40 @@ contains
     !       rank should write their own local vectors to correct
     !       locations in the output file.
 
+    call mpi_file_open(MPI_COMM_WORLD,'data.dat',mpi_mode_create+mpi_mode_rdwr, &
+      mpi_info_null,fh,rc)
+
+    offset=my_id*localsize*dsize
+
+    call mpi_file_write_at(fh,offset,localvector,localsize,MPI_INTEGER, &
+      mpi_status_ignore,rc)
+
+    localvector(:)=0
+    write(*,*) localvector
+
+    call mpi_file_read_at(fh,offset,localvector,localsize,MPI_INTEGER,&
+      mpi_status_ignore,rc)
+
+    call mpi_file_close(fh,rc)
+
   end subroutine mpiio_writer
+
+  subroutine ordered_print
+    implicit none
+    integer :: task
+
+    do task = 0, ntasks-1
+       if (my_id == task) then
+          write(output_unit, '(A,I0,A)', advance='no') 'Task ', &
+               & my_id, ' received:'
+          do i = 1, localsize
+             write(output_unit, '(I3)', advance='no') localvector(i)
+          end do
+          write(output_unit,*) ' '
+       end if
+       call mpi_barrier(MPI_COMM_WORLD, rc)
+    end do
+
+  end subroutine ordered_print
 
 end program pario
