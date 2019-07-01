@@ -30,6 +30,7 @@ program pario
   call single_writer()
 
   deallocate(localvector)
+
   call mpi_finalize(rc)
 
 contains
@@ -37,8 +38,33 @@ contains
   subroutine single_writer()
     implicit none
 
+    character (len=18) :: filename
+
     ! TODO: Implement a function that writers the whole array of elements
     !       to a file so that single process is responsible for the file io
+
+!    if (my_id == writer_id) then
+!      fullvector(1:localsize) = localvector
+!      do i=1,ntasks-1
+!        call mpi_recv(fullvector(i*localsize+1),localsize,mpi_real,i, &
+!          i,mpi_comm_world,mpi_status_ignore,rc)
+!      end do
+!
+!      open(11,file='spokesman.dat',access='stream')
+!      write(11) fullvector
+!      close(11)
+!
+!    else
+!      call mpi_send(localvector,localsize,mpi_real,0,my_id,mpi_comm_world,rc)
+!    end if
+
+!    b)
+
+    write(filename,'(a,i2.2,a)') 'spokesman_id', my_id, '.dat'
+    write(*,*) filename
+    open(11,file=filename,access='stream')
+    write(11) localvector
+    close(11)
 
   end subroutine single_writer
 

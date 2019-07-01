@@ -42,6 +42,20 @@ contains
     ! TODO: Implement a function that will read the data from a file so that
     !       a single process does the file io. Use rank WRITER_ID as the io rank
 
+    open(10,file='spokesman.dat',access='stream')
+    if (my_id == writer_id) then
+      read(10) fullvector
+      do i=1,ntasks-1
+        call mpi_send(fullvector(i*localsize+1:(i+1)*localsize),localsize,mpi_real, &
+          i,i,mpi_comm_world,rc)
+      end do
+    else
+      call mpi_recv(localvector,localsize,mpi_real,0,my_id,mpi_comm_world, &
+        mpi_status_ignore,rc)
+    end if
+
+    close(10)
+
   end subroutine single_reader
 
   subroutine ordered_print
