@@ -9,12 +9,12 @@ program mandelbrot
   integer, parameter :: dp = REAL64
 
   integer, parameter :: max_iter_count = 512
-  integer, parameter :: max_depth = 6
-  integer, parameter :: min_size = 32
+  integer, parameter :: max_depth = 96
+  integer, parameter :: min_size = 2
   integer, parameter :: subdiv = 4
 
-  integer, parameter :: w = 2048
-  integer, parameter :: h = w
+  integer, parameter :: w = 16384
+  integer, parameter :: h = w       ! has to be square
 
   integer, pointer, dimension(:,:) :: iter_counts
 
@@ -34,7 +34,11 @@ program mandelbrot
   ! TODO create parallel region. How many threads should be calling
   ! mandelbrot_block in this uppermost level?
 
+  !$omp parallel
+  !$omp single
   call mandelbrot_block(iter_counts, w, h, cmin, cmax, 0, 0, w, 1)
+  !$omp end single
+  !$omp end parallel
 
   t1 = omp_get_wtime()
 
@@ -81,9 +85,11 @@ contains
        ! Subdivide recursively
        do i=0, subdiv - 1
           do j=0, subdiv - 1
-             call mandelbrot_block(iter_counts, w, h, cmin, cmax, &
+            !$omp task
+            call mandelbrot_block(iter_counts, w, h, cmin, cmax, &
                   x0 + i*block_size, y0 + j*block_size, &
                   block_size, depth + 1)
+            !$omp end task
           end do
        end do
     else
