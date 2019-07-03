@@ -39,6 +39,10 @@ contains
   !   dt (real(dp)): time step value
   subroutine evolve(curr, prev, a, dt)
 
+    #ifdef _OPENACC
+      use openacc
+    #endif
+
     implicit none
 
     type(field), target, intent(inout) :: curr, prev
@@ -58,6 +62,7 @@ contains
     prevdata => prev%data
 
     ! TODO: use OpenACC to parallelise the loops
+    !$acc parallel loop
     do j = 1, ny
        do i = 1, nx
           currdata(i, j) = prevdata(i, j) + a * dt * &
@@ -67,6 +72,7 @@ contains
                &   prevdata(i, j+1)) / dy**2)
        end do
     end do
+    !$acc end parallel loop
   end subroutine evolve
 
 end module core
