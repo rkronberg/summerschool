@@ -39,8 +39,8 @@ program heat_solve
   ! Main iteration loop, save a picture every
   ! image_interval steps
 
-  !$omp end single
   start =  mpi_wtime()
+  !$omp end single
 
   do iter = 1, nsteps
      call exchange(previous, parallelization,thread_id)
@@ -52,9 +52,9 @@ program heat_solve
      call swap_fields(current, previous)
      !$omp end single
   end do
-
-  stop = mpi_wtime()
+  
   !$omp end parallel
+  stop = mpi_wtime()
 
   if (parallelization % rank == 0) then
      write(*,'(A,F7.3,A)') 'Iteration took ', stop - start, ' seconds.'

@@ -12,17 +12,11 @@ contains
 
     type(field), intent(inout) :: field0
     type(parallel_data), intent(in) :: parallel
-    integer,intent(in),optional :: thread_id
 
-    integer :: ierr, tagl, tagr
+    integer :: ierr, tagl, tagr, thread_id
 
-    if (present(thread_id)) then
-       tagl = thread_id + 512
-       tagr = thread_id + 1024
-    else
-       tagl = 512
-       tagr = 1024
-    end if
+    tagl = thread_id + 100
+    tagr = thread_id + 200
 
     ! Send to left, receive from right
     call mpi_sendrecv(field0%data(:, 1), field0%nx + 2, MPI_DOUBLE_PRECISION, &
@@ -57,7 +51,7 @@ contains
     nx = curr%nx
     ny = curr%ny
 
-    !$omp do private(i)
+    !$omp do private(i,j)
     do j = 1, ny
        do i = 1, nx
           curr%data(i, j) = prev%data(i, j) + a * dt * &
